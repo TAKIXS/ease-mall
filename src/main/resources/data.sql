@@ -20,6 +20,5 @@ INSERT INTO product (category_id, name, description, price, stock, specs) VALUES
 (6, '男士商务夹克', '春秋季新款，修身版型', 399.00, 200, '{"颜色":"黑色","尺码":"M/L/XL"}'),
 (7, '女士连衣裙', '碎花系列，夏季新款', 299.00, 150, '{"颜色":"碎花蓝","尺码":"S/M/L"}');
 
--- 管理员（密码 admin123，BCrypt 加密）
-INSERT INTO admin_user (username, password, role) VALUES
-('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5Eh', 'SUPER_ADMIN');
+-- 管理员由 AdminServiceImpl.initAdmin() 自动创建，无需在此插入
+-- 默认账号: admin / admin123
