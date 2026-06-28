@@ -70,6 +70,21 @@ function handleLogout() { auth.logout(); router.push('/login') }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* Focus: 可见焦点环（键盘导航） */
+:focus-visible {
+  outline: 2px solid var(--brown);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Reduced motion: 尊重用户系统偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 body {
   font-family: 'Nunito Sans', 'Microsoft YaHei', sans-serif;
   background: var(--bg);
