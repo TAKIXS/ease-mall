@@ -4,98 +4,104 @@ import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
 const router = useRouter()
-
-function handleLogout() {
-  auth.logout()
-  router.push('/login')
-}
+function handleLogout() { auth.logout(); router.push('/login') }
 </script>
 
 <template>
-  <!-- 顶部导航栏（渐变蓝） -->
-  <div class="header">
-    <div class="header-inner">
+  <!-- ♨ 顶部导航 — 暖棕渐变 -->
+  <div class="topbar">
+    <div class="topbar-inner">
       <div class="logo" @click="router.push('/home')">
         <span class="logo-icon">🛒</span>
         <span class="logo-text">ease-mall</span>
       </div>
       <div class="nav-links">
         <template v-if="!auth.isLoggedIn()">
-          <el-button type="primary" link @click="router.push('/login')">登录</el-button>
-          <el-button type="primary" link style="color:#fff" @click="router.push('/register')">注册</el-button>
+          <button class="btn-ghost" @click="router.push('/login')">登录</button>
+          <button class="btn-outline" @click="router.push('/register')">注册</button>
         </template>
         <template v-else>
-          <el-badge :value="0" :hidden="true">
-            <el-button type="primary" link @click="router.push('/cart')">🛒 购物车</el-button>
-          </el-badge>
-          <el-button type="primary" link @click="router.push('/orders')">📋 我的订单</el-button>
-          <span class="user-tag">👤 {{ auth.user?.username }}</span>
-          <el-button type="primary" link @click="handleLogout">退出</el-button>
+          <button class="btn-ghost" @click="router.push('/cart')">🛒 购物车</button>
+          <button class="btn-ghost" @click="router.push('/orders')">📋 我的订单</button>
+          <span class="user-badge">👤 {{ auth.user?.username }}</span>
+          <button class="btn-ghost" @click="handleLogout">退出</button>
         </template>
       </div>
     </div>
   </div>
 
-  <!-- 页面内容 -->
-  <div class="main-content">
+  <!-- 内容区 -->
+  <div class="page">
     <router-view />
   </div>
 
   <!-- 底部 -->
   <div class="footer">
-    <p>© 2024 ease-mall · Java Spring Boot + Vue3 全栈项目</p>
+    <div class="footer-svg">
+      <svg viewBox="0 0 1200 60" fill="none"><path d="M0 30 Q150 0 300 30 T600 30 T900 30 T1200 30" stroke="#C4A484" stroke-width="2" fill="none" opacity="0.4"/></svg>
+    </div>
+    <p>© 2024 ease-mall · 用心做好每一笔订单</p>
   </div>
 </template>
 
 <style>
+/* ===== ♨ Global Warm Theme ===== */
+:root {
+  --bg:       #F9F5F0;
+  --card:     #FFFAF5;
+  --brown:    #8B5E3C;
+  --brown-lt: #A67C52;
+  --brown-pale: #C4A484;
+  --text:     #4A3728;
+  --text-lt:  #8B7355;
+  --shadow:   0 4px 24px rgba(139,94,60,0.08);
+  --shadow-lg: 0 12px 48px rgba(139,94,60,0.10);
+  --radius:   18px;
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f5f7fa; color: #333; }
 
-.header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
-  padding: 0 20px;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+body {
+  font-family: 'Nunito Sans', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
 }
-.header-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  height: 56px;
-  gap: 24px;
+
+/* ===== Topbar ===== */
+.topbar {
+  background: linear-gradient(135deg, #8B5E3C 0%, #A67C52 50%, #8B5E3C 100%);
+  padding: 0 24px; position: sticky; top: 0; z-index: 1000;
+  box-shadow: 0 2px 20px rgba(139,94,60,0.2);
 }
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  user-select: none;
+.topbar-inner {
+  max-width: 1200px; margin: 0 auto; display: flex;
+  align-items: center; height: 56px; gap: 20px;
 }
+.logo { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
 .logo-icon { font-size: 26px; }
-.logo-text { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  justify-content: flex-end;
-}
-.nav-links .el-button--primary.link { color: rgba(255,255,255,0.9); font-size: 15px; }
-.nav-links .el-button--primary.link:hover { color: #fff; }
-.user-tag { color: rgba(255,255,255,0.9); font-size: 14px; }
+.logo-text { font-size: 22px; font-weight: 700; letter-spacing: 1px; color: #FFFAF5; }
+.nav-links { display: flex; align-items: center; gap: 8px; flex: 1; justify-content: flex-end; }
+.user-badge { color: rgba(255,250,245,0.85); font-size: 14px; }
 
-.main-content { max-width: 1200px; margin: 24px auto; padding: 0 20px; min-height: 70vh; }
-
-.footer {
-  text-align: center;
-  padding: 24px;
-  color: #999;
-  font-size: 13px;
-  background: #fff;
-  border-top: 1px solid #eee;
+.btn-ghost {
+  background: none; border: none; color: rgba(255,250,245,0.85);
+  font-size: 15px; font-family: inherit; cursor: pointer; padding: 8px 14px; border-radius: 10px;
+  transition: all .2s;
 }
+.btn-ghost:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+.btn-outline {
+  background: transparent; border: 1.5px solid rgba(255,250,245,0.5); color: #fff;
+  font-size: 15px; font-family: inherit; cursor: pointer; padding: 7px 18px; border-radius: 10px;
+  transition: all .2s;
+}
+.btn-outline:hover { background: rgba(255,255,255,0.15); border-color: #fff; }
+
+/* ===== Page ===== */
+.page { max-width: 1200px; margin: 28px auto; padding: 0 20px; min-height: 70vh; }
+
+/* ===== Footer ===== */
+.footer { text-align: center; padding: 32px 20px; background: #FFFAF5; color: var(--brown-pale); font-size: 13px; }
+.footer-svg { max-width: 600px; margin: 0 auto 12px; }
 </style>
