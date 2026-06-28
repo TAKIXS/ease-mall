@@ -7,6 +7,7 @@ import com.mall.auth.vo.LoginVO;
 import com.mall.common.result.R;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -81,5 +82,16 @@ public class AuthController {
     public R<LoginVO> login(@Valid @RequestBody LoginDTO dto) {
         LoginVO vo = authService.login(dto);
         return R.ok(vo);
+    }
+
+    /**
+     * 退出登录 — Token 加入 Redis 黑名单
+     */
+    @PostMapping("/logout")
+    @Operation(summary = "退出登录")
+    public R<Void> logout(HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        authService.logout(token);
+        return R.ok();
     }
 }

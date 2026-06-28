@@ -21,4 +21,10 @@ public interface AuthService {
      * @return LoginVO（包含 JWT Token）
      */
     LoginVO login(LoginDTO dto);
+
+    /**
+     * 退出登录 — Token 加入 Redis 黑名单
+     * @param token JWT Token
+     */
+    void logout(String token);
 }

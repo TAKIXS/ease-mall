@@ -8,6 +8,7 @@ import com.mall.auth.mapper.UserMapper;
 import com.mall.auth.service.AuthService;
 import com.mall.auth.vo.LoginVO;
 import com.mall.common.exception.BusinessException;
+import com.mall.common.service.TokenService;
 import com.mall.common.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserMapper userMapper;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final TokenService tokenService;
 
     // ==================== 注册 ====================
 
@@ -119,5 +121,12 @@ public class AuthServiceImpl implements AuthService {
                 .username(user.getUsername())
                 .nickname(user.getNickname())
                 .build();
+    }
+
+    // ==================== 退出登录 ====================
+    @Override
+    public void logout(String token) {
+        tokenService.addToBlacklist(token);
+        log.info("用户已退出，Token 加入黑名单");
     }
 }

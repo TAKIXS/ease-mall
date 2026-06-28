@@ -1,12 +1,12 @@
 package com.mall.order.controller;
 
 import com.mall.common.result.R;
-import com.mall.common.utils.JwtUtil;
 import com.mall.order.dto.CartItemDTO;
 import com.mall.order.entity.OrderItem;
 import com.mall.order.service.CartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -21,36 +21,35 @@ public class CartController {
 
     private final CartService cartService;
 
-    private Long getUserId(String auth) { return JwtUtil.getUserId(auth.substring(7)); }
+    /** ★ Token 已被拦截器验证，直接拿 userId */
+    private Long getUserId(HttpServletRequest req) {
+        return (Long) req.getAttribute("userId");
+    }
 
     @PostMapping
     @Operation(summary = "加入购物车")
-    public R<Void> add(@RequestHeader("Authorization") String auth,
-                       @Valid @RequestBody CartItemDTO dto) {
-        cartService.addItem(getUserId(auth), dto);
+    public R<Void> add(HttpServletRequest req, @Valid @RequestBody CartItemDTO dto) {
+        cartService.addItem(getUserId(req), dto);
         return R.ok();
     }
 
     @GetMapping
     @Operation(summary = "查看购物车")
-    public R<List<OrderItem>> list(@RequestHeader("Authorization") String auth) {
-        return R.ok(cartService.getItems(getUserId(auth)));
+    public R<List<OrderItem>> list(HttpServletRequest req) {
+        return R.ok(cartService.getItems(getUserId(req)));
     }
 
     @PutMapping("/{productId}")
     @Operation(summary = "修改数量")
-    public R<Void> updateQuantity(@RequestHeader("Authorization") String auth,
-                                  @PathVariable Long productId,
-                                  @RequestParam int quantity) {
-        cartService.updateQuantity(getUserId(auth), productId, quantity);
+    public R<Void> updateQuantity(HttpServletRequest req, @PathVariable Long productId, @RequestParam int quantity) {
+        cartService.updateQuantity(getUserId(req), productId, quantity);
         return R.ok();
     }
 
     @DeleteMapping("/{productId}")
     @Operation(summary = "移除商品")
-    public R<Void> remove(@RequestHeader("Authorization") String auth,
-                          @PathVariable Long productId) {
-        cartService.removeItem(getUserId(auth), productId);
+    public R<Void> remove(HttpServletRequest req, @PathVariable Long productId) {
+        cartService.removeItem(getUserId(req), productId);
         return R.ok();
     }
 }
