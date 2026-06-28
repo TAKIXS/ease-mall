@@ -22,6 +22,12 @@ function statusText(status) {
   return { 1: '待支付', 2: '已支付', 3: '已发货', 4: '已完成', 5: '已取消' }[status]
 }
 
+async function payOrder(orderId) {
+  await request.post('/payment/pay', { orderId, payMethod: 'ALIPAY' })
+  ElMessage.success('支付成功！')
+  loadOrders(page.value)
+}
+
 async function cancelOrder(orderId) {
   await request.put(`/order/${orderId}/cancel`)
   ElMessage.success('订单已取消')
@@ -52,8 +58,10 @@ onMounted(() => loadOrders())
       <el-table-column label="时间" min-width="160">
         <template #default="{row}">{{ row.createTime }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="100">
+      <el-table-column label="操作" width="200">
         <template #default="{row}">
+          <el-button v-if="row.status===1" type="success" size="small"
+            @click="payOrder(row.id)">支付</el-button>
           <el-button v-if="row.status===1" type="danger" size="small"
             @click="cancelOrder(row.id)">取消</el-button>
         </template>
