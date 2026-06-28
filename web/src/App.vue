@@ -13,7 +13,7 @@ function handleLogout() { auth.logout(); router.push('/login') }
     <div class="topbar-inner">
       <div class="logo" @click="router.push('/home')">
         <span class="logo-icon">🛒</span>
-        <span class="logo-text">ease-mall</span>
+        <span class="logo-text">悠然商城</span>
       </div>
       <div class="nav-links">
         <template v-if="!auth.isLoggedIn()">
@@ -40,7 +40,7 @@ function handleLogout() { auth.logout(); router.push('/login') }
     <div class="footer-svg">
       <svg viewBox="0 0 1200 60" fill="none"><path d="M0 30 Q150 0 300 30 T600 30 T900 30 T1200 30" stroke="#C4A484" stroke-width="2" fill="none" opacity="0.4"/></svg>
     </div>
-    <p>© 2024 ease-mall · 用心做好每一笔订单</p>
+    <p>© 2024 悠然商城 · 用心做好每一笔订单</p>
   </div>
 </template>
 
