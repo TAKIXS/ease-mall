@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import request from '../../utils/request'
 import { ElMessage } from 'element-plus'
+import { Folder, ShoppingCart } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -25,7 +26,7 @@ async function searchProducts(p = 1) {
 async function addToCart(product) {
   if (!auth.isLoggedIn()) { ElMessage.warning('请先登录'); router.push('/login'); return }
   await request.post('/cart', { productId: product.id, quantity: 1 })
-  ElMessage.success('已加入购物车 🛒')
+  ElMessage.success('已加入购物车')
 }
 function selectCategory(id) { selectedCategory.value = id; searchProducts(1) }
 onMounted(() => { loadCategories(); searchProducts() })
@@ -43,15 +44,17 @@ onMounted(() => { loadCategories(); searchProducts() })
       </svg>
     </div>
     <h1>发现温暖好物</h1>
-    <p>用心挑选，品质生活 · 从 ease-mall 开始</p>
+    <p>用心挑选，品质生活 · 从悠然商城开始</p>
   </div>
 
   <div style="display:flex; gap:24px; margin-top:24px">
     <!-- 左侧分类 -->
     <div class="sidebar">
-      <h3>📂 商品分类</h3>
+      <h3><el-icon :size="16"><Folder /></el-icon> 商品分类</h3>
       <div class="cate-list">
-        <div class="cate-item" :class="{active: !selectedCategory}" @click="selectedCategory=null;searchProducts(1)">✨ 全部分类</div>
+        <div class="cate-item" :class="{active: !selectedCategory}" @click="selectedCategory=null;searchProducts(1)">
+          <el-icon :size="14"><Folder /></el-icon> 全部分类
+        </div>
         <div v-for="c in categories" :key="c.id" class="cate-item" :class="{active: selectedCategory===c.id}" @click="selectCategory(c.id)">{{ c.name }}</div>
       </div>
     </div>
@@ -59,7 +62,8 @@ onMounted(() => { loadCategories(); searchProducts() })
     <!-- 右侧商品 -->
     <div style="flex:1">
       <div class="search-bar">
-        <el-input v-model="keyword" placeholder="🔍 搜索你想要的商品..." size="large" @keyup.enter="searchProducts(1)" clearable class="warm-search">
+        <el-input v-model="keyword" placeholder="搜索你想要的商品..." size="large" @keyup.enter="searchProducts(1)" clearable class="warm-search">
+          <template #prefix><el-icon><el-icon-search /></el-icon></template>
           <template #append><el-button class="search-btn" @click="searchProducts(1)">搜索</el-button></template>
         </el-input>
       </div>
@@ -74,7 +78,9 @@ onMounted(() => { loadCategories(); searchProducts() })
             <div class="card-body">
               <div class="pname">{{ p.name }}</div>
               <div class="pmeta"><span>已售 {{ p.sales }}</span><span>库存 {{ p.stock }}</span></div>
-              <button class="cart-btn" @click.stop="addToCart(p)">🛒 加入购物车</button>
+              <button class="cart-btn" @click.stop="addToCart(p)">
+                <el-icon :size="14"><ShoppingCart /></el-icon> 加入购物车
+              </button>
             </div>
           </div>
         </el-col>
@@ -95,14 +101,14 @@ onMounted(() => { loadCategories(); searchProducts() })
 .hero p { color: var(--text-lt); font-size: 15px; }
 
 .sidebar { width: 180px; background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); height: fit-content; position: sticky; top: 80px; }
-.sidebar h3 { margin-bottom: 12px; font-size: 16px; color: var(--text); font-weight: 700; }
+.sidebar h3 { margin-bottom: 12px; font-size: 16px; color: var(--text); font-weight: 700; display: flex; align-items: center; gap: 6px; }
 .cate-list { display: flex; flex-direction: column; gap: 4px; }
-.cate-item { padding: 10px 14px; border-radius: 12px; cursor: pointer; font-size: 14px; color: var(--text-lt); transition: all .2s; }
+.cate-item { padding: 10px 14px; border-radius: 12px; cursor: pointer; font-size: 14px; color: var(--text-lt); transition: all .2s; display: flex; align-items: center; gap: 4px; }
 .cate-item:hover { background: #F0E6D8; color: var(--brown); }
 .cate-item.active { background: linear-gradient(135deg, #8B5E3C, #A67C52); color: #fff; font-weight: 600; }
 
 .search-bar { margin-bottom: 20px; }
-:deep(.warm-search .el-input__wrapper) { background: #fff; border-radius: 14px; border: 1.5px solid #E8DDD0; box-shadow: none; }
+:deep(.warm-search .el-input__wrapper) { background: #fff; border-radius: 14px; border: 1.5px solid #E8DDD0; box-shadow: none; padding-left: 12px; }
 :deep(.warm-search .el-input__wrapper:hover) { border-color: var(--brown-pale); }
 :deep(.warm-search .el-input__wrapper.is-focus) { border-color: var(--brown); box-shadow: 0 0 0 2px rgba(139,94,60,0.1); }
 .search-btn { background: var(--brown); border-color: var(--brown); color: #fff; border-radius: 0 14px 14px 0; font-family: inherit; }
@@ -116,6 +122,6 @@ onMounted(() => { loadCategories(); searchProducts() })
 .card-body { padding: 14px; }
 .pname { font-size: 15px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 4px; }
 .pmeta { display: flex; justify-content: space-between; font-size: 12px; color: var(--brown-pale); margin-bottom: 10px; }
-.cart-btn { width: 100%; padding: 9px; border: 1.5px solid var(--brown); background: transparent; color: var(--brown); border-radius: 12px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; }
+.cart-btn { width: 100%; padding: 9px; border: 1.5px solid var(--brown); background: transparent; color: var(--brown); border-radius: 12px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 4px; }
 .cart-btn:hover { background: var(--brown); color: #fff; }
 </style>

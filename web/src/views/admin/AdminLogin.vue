@@ -3,6 +3,7 @@ import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import request from '../../utils/request'
 import { ElMessage } from 'element-plus'
+import { Lock } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const form = reactive({ username: 'admin', password: 'admin123' })
@@ -15,11 +16,7 @@ async function handleLogin() {
   <div class="center-page">
     <div class="card">
       <div class="card-art">
-        <svg viewBox="0 0 120 80" fill="none">
-          <rect x="35" y="18" width="50" height="35" rx="6" fill="#F0E6D8" stroke="#8B5E3C" stroke-width="2.5"/>
-          <circle cx="60" cy="35" r="8" stroke="#8B5E3C" stroke-width="2" fill="none"/>
-          <path d="M56 35 L64 35 M60 31 L60 39" stroke="#8B5E3C" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+        <el-icon :size="40" color="#8B5E3C"><Lock /></el-icon>
         <h2>管理员登录</h2>
         <p>后台管理系统</p>
       </div>
@@ -36,7 +33,7 @@ async function handleLogin() {
 .center-page { display: flex; justify-content: center; align-items: center; min-height: 60vh; }
 .card { width: 400px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 40px 36px; }
 .card-art { text-align: center; margin-bottom: 24px; }
-.card-art h2 { margin: 8px 0 4px; font-size: 22px; color: var(--text); font-weight: 700; }
+.card-art h2 { margin: 12px 0 4px; font-size: 22px; color: var(--text); font-weight: 700; }
 .card-art p { color: var(--text-lt); font-size: 14px; margin: 0; }
 :deep(.warm-input .el-input__wrapper) { background: var(--bg); border-radius: 12px; border: 1.5px solid #E8DDD0; box-shadow: none; }
 :deep(.warm-input .el-input__wrapper:hover) { border-color: var(--brown-pale); }

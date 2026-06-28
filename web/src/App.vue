@@ -1,6 +1,7 @@
 <script setup>
 import { useAuthStore } from './stores/auth'
 import { useRouter } from 'vue-router'
+import { Shop, ShoppingCart, List, User, SwitchButton } from '@element-plus/icons-vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -12,7 +13,7 @@ function handleLogout() { auth.logout(); router.push('/login') }
   <div class="topbar">
     <div class="topbar-inner">
       <div class="logo" @click="router.push('/home')">
-        <span class="logo-icon">🛒</span>
+        <el-icon :size="24"><Shop /></el-icon>
         <span class="logo-text">悠然商城</span>
       </div>
       <div class="nav-links">
@@ -21,10 +22,18 @@ function handleLogout() { auth.logout(); router.push('/login') }
           <button class="btn-outline" @click="router.push('/register')">注册</button>
         </template>
         <template v-else>
-          <button class="btn-ghost" @click="router.push('/cart')">🛒 购物车</button>
-          <button class="btn-ghost" @click="router.push('/orders')">📋 我的订单</button>
-          <span class="user-badge">👤 {{ auth.user?.username }}</span>
-          <button class="btn-ghost" @click="handleLogout">退出</button>
+          <button class="btn-ghost" @click="router.push('/cart')">
+            <el-icon :size="16"><ShoppingCart /></el-icon> 购物车
+          </button>
+          <button class="btn-ghost" @click="router.push('/orders')">
+            <el-icon :size="16"><List /></el-icon> 我的订单
+          </button>
+          <span class="user-badge">
+            <el-icon :size="14"><User /></el-icon> {{ auth.user?.username }}
+          </span>
+          <button class="btn-ghost" @click="handleLogout">
+            <el-icon :size="16"><SwitchButton /></el-icon> 退出
+          </button>
         </template>
       </div>
     </div>
@@ -78,16 +87,15 @@ body {
   max-width: 1200px; margin: 0 auto; display: flex;
   align-items: center; height: 56px; gap: 20px;
 }
-.logo { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
-.logo-icon { font-size: 26px; }
-.logo-text { font-size: 22px; font-weight: 700; letter-spacing: 1px; color: #FFFAF5; }
+.logo { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; color: #FFFAF5; }
+.logo-text { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
 .nav-links { display: flex; align-items: center; gap: 8px; flex: 1; justify-content: flex-end; }
-.user-badge { color: rgba(255,250,245,0.85); font-size: 14px; }
+.user-badge { display: flex; align-items: center; gap: 4px; color: rgba(255,250,245,0.85); font-size: 14px; }
 
 .btn-ghost {
   background: none; border: none; color: rgba(255,250,245,0.85);
   font-size: 15px; font-family: inherit; cursor: pointer; padding: 8px 14px; border-radius: 10px;
-  transition: all .2s;
+  transition: all .2s; display: flex; align-items: center; gap: 4px;
 }
 .btn-ghost:hover { background: rgba(255,255,255,0.12); color: #fff; }
 

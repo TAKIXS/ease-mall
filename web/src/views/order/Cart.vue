@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import request from '../../utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { ShoppingCart, Edit } from '@element-plus/icons-vue'
 
 const router = useRouter(); const items = ref([])
 const orderForm = ref({ receiverName: '', receiverPhone: '', receiverAddress: '', remark: '' })
@@ -14,14 +15,14 @@ async function updateQty(pid, qty) { if(qty<1)return; await request.put(`/cart/$
 async function removeItem(pid) { await ElMessageBox.confirm('确定移除？'); await request.delete(`/cart/${pid}`); ElMessage.success('已移除'); loadCart() }
 async function placeOrder() {
   if(!orderForm.value.receiverName||!orderForm.value.receiverPhone||!orderForm.value.receiverAddress){ ElMessage.warning('请填写收货信息'); return }
-  await request.post('/order', orderForm.value); ElMessage.success('下单成功！🎉'); showDialog.value=false; router.push('/orders')
+  await request.post('/order', orderForm.value); ElMessage.success('下单成功'); showDialog.value=false; router.push('/orders')
 }
 onMounted(loadCart)
 </script>
 
 <template>
   <div class="page-card">
-    <h2>🛒 我的购物车</h2>
+    <h2><el-icon :size="22"><ShoppingCart /></el-icon> 我的购物车</h2>
     <el-table v-if="items.length" :data="items" class="warm-table" style="margin-top:20px">
       <el-table-column label="商品" min-width="200"><template #default="{row}"><span class="pname-link" @click="router.push('/product/'+row.productId)">{{ row.productName }}</span></template></el-table-column>
       <el-table-column label="单价" width="120"><template #default="{row}">¥{{ row.price }}</template></el-table-column>
@@ -36,7 +37,8 @@ onMounted(loadCart)
       <button class="warm-btn" @click="showDialog=true">去下单</button>
     </div>
 
-    <el-dialog v-model="showDialog" title="📝 填写收货信息" width="440px" class="warm-dialog">
+    <el-dialog v-model="showDialog" width="440px" class="warm-dialog">
+      <template #header><el-icon :size="18"><Edit /></el-icon> 填写收货信息</template>
       <el-form :model="orderForm" label-position="top">
         <el-form-item label="收件人"><el-input v-model="orderForm.receiverName" class="warm-input" /></el-form-item>
         <el-form-item label="手机号"><el-input v-model="orderForm.receiverPhone" class="warm-input" /></el-form-item>
@@ -50,7 +52,7 @@ onMounted(loadCart)
 
 <style scoped>
 .page-card { background: var(--card); border-radius: var(--radius); padding: 28px 32px; box-shadow: var(--shadow); }
-h2 { font-weight: 700; color: var(--text); }
+h2 { font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
 .pname-link { cursor: pointer; color: var(--brown); font-weight: 600; }
 .pname-link:hover { text-decoration: underline; }
 .warn-link { background: none; border: none; color: #c0392b; cursor: pointer; font-size: 13px; font-family: inherit; }
