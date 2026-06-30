@@ -28,6 +28,9 @@ function handleLogout() { auth.logout(); router.push('/login') }
           <button class="btn-ghost" @click="router.push('/orders')">
             <el-icon :size="16"><List /></el-icon> 我的订单
           </button>
+          <button class="btn-ghost" @click="router.push('/profile')">
+            <el-icon :size="16"><User /></el-icon> 个人中心
+          </button>
           <span class="user-badge">
             <el-icon :size="14"><User /></el-icon> {{ auth.user?.username }}
           </span>

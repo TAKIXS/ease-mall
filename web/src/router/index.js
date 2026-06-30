@@ -6,6 +6,7 @@ const routes = [
   // 用户
   { path: '/login', name: 'Login', component: () => import('../views/user/Login.vue') },
   { path: '/register', name: 'Register', component: () => import('../views/user/Register.vue') },
+  { path: '/profile', name: 'Profile', component: () => import('../views/user/Profile.vue') },
 
   // 商品
   { path: '/home', name: 'Home', component: () => import('../views/product/Home.vue') },
