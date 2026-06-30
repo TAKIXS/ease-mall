@@ -52,15 +52,15 @@ onMounted(() => loadOrders())
     </div>
 
     <el-table v-if="orders.length" :data="orders" class="warm-table" style="margin-top:20px">
-      <el-table-column label="订单编号" width="190"><template #default="{r}">{{ r.orderNo }}</template></el-table-column>
-      <el-table-column label="金额" width="110"><template #default="{r}">¥{{ r.totalAmount }}</template></el-table-column>
+      <el-table-column label="订单编号" width="190"><template #default="{row: r}">{{ r.orderNo }}</template></el-table-column>
+      <el-table-column label="金额" width="110"><template #default="{row: r}">¥{{ r.totalAmount }}</template></el-table-column>
       <el-table-column label="状态" width="100">
-        <template #default="{r}"><span class="status-badge" :style="{background:statusMap[r.status][1]}">{{ statusMap[r.status][0] }}</span></template>
+        <template #default="{row: r}"><span class="status-badge" :style="{background:statusMap[r.status][1]}">{{ statusMap[r.status][0] }}</span></template>
       </el-table-column>
-      <el-table-column label="收货人" width="90"><template #default="{r}">{{ r.receiverName }}</template></el-table-column>
-      <el-table-column label="时间" min-width="160"><template #default="{r}">{{ r.createTime?.substring(0,16) }}</template></el-table-column>
+      <el-table-column label="收货人" width="90"><template #default="{row: r}">{{ r.receiverName }}</template></el-table-column>
+      <el-table-column label="时间" min-width="160"><template #default="{row: r}">{{ r.createTime?.substring(0,16) }}</template></el-table-column>
       <el-table-column label="操作" width="180">
-        <template #default="{r}">
+        <template #default="{row: r}">
           <button v-if="r.status===1" class="btn-pay" @click="payOrder(r.id)"><el-icon :size="14"><CreditCard /></el-icon> 支付</button>
           <button v-if="r.status===1" class="btn-cancel" @click="cancelOrder(r.id)">取消</button>
           <span v-if="r.status===2" style="color:#5B9A8B;font-size:13px">等待发货</span>
