@@ -31,7 +31,7 @@ const orders = ref([]); const orderPage = ref(1); const orderTotal = ref(0)
 
 async function loadOrders(p = 1) {
   orderPage.value = p
-  const res = await request.get('/order', { params: { page: p, size: 10 } })
+  const res = await request.get('/admin/orders', { params: { page: p, size: 10 } })
   orders.value = res.data.records; orderTotal.value = res.data.total
 }
 
