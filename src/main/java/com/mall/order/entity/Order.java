@@ -1,6 +1,7 @@
 package com.mall.order.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,8 +18,9 @@ import java.time.LocalDateTime;
 @TableName("orders")
 public class Order {
 
-    /** 订单ID — 雪花算法生成，不用数据库自增 */
+    /** 订单ID — 雪花算法生成，JS 精度不够，序列化为 String */
     @TableId
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long id;
 
     /** 订单编号（展示用，如 ORD20240628001） */

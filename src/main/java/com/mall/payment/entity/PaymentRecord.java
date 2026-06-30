@@ -1,6 +1,7 @@
 package com.mall.payment.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,12 +17,14 @@ public class PaymentRecord {
     private Long id;
 
     /** 订单ID */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long orderId;
 
     /** 订单编号 */
     private String orderNo;
 
     /** 用户ID */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long userId;
 
     /** 支付金额 */
