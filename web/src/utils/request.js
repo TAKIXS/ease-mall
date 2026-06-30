@@ -30,7 +30,13 @@ request.interceptors.response.use(
     return data  // 直接返回 { code, message, data }
   },
   error => {
-    ElMessage.error('网络错误，请稍后重试')
+    // 优先显示后端返回的错误信息
+    if (error.response && error.response.data) {
+      const msg = error.response.data.message || '请求失败'
+      ElMessage.error(msg)
+    } else {
+      ElMessage.error('网络错误，请稍后重试')
+    }
     return Promise.reject(error)
   }
 )
