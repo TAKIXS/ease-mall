@@ -55,9 +55,19 @@ onMounted(() => { loadCategories(); searchProducts(); loadHotProducts() })
       <h3><el-icon :size="16"><Folder /></el-icon> 商品分类</h3>
       <div class="cate-list">
         <div class="cate-item" :class="{active: !selectedCategory}" @click="selectedCategory=null;searchProducts(1)">
-          <el-icon :size="14"><Folder /></el-icon> 全部分类
+          全部分类
         </div>
-        <div v-for="c in categories" :key="c.id" class="cate-item" :class="{active: selectedCategory===c.id}" @click="selectCategory(c.id)">{{ c.name }}</div>
+        <!-- ★ 树形分类：一级 + 子级 -->
+        <template v-for="c in categories" :key="c.id">
+          <div class="cate-item" :class="{active: selectedCategory===c.id}" @click="selectCategory(c.id)">
+            {{ c.name }}
+          </div>
+          <div v-for="sub in c.children" :key="sub.id"
+            class="cate-item cate-sub" :class="{active: selectedCategory===sub.id}"
+            @click="selectCategory(sub.id)">
+            {{ sub.name }}
+          </div>
+        </template>
       </div>
     </div>
 
@@ -121,9 +131,10 @@ onMounted(() => { loadCategories(); searchProducts(); loadHotProducts() })
 .sidebar { width: 180px; background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); height: fit-content; position: sticky; top: 80px; }
 .sidebar h3 { margin-bottom: 12px; font-size: 16px; color: var(--text); font-weight: 700; display: flex; align-items: center; gap: 6px; }
 .cate-list { display: flex; flex-direction: column; gap: 4px; }
-.cate-item { padding: 10px 14px; border-radius: 12px; cursor: pointer; font-size: 14px; color: var(--text-lt); transition: all .2s; display: flex; align-items: center; gap: 4px; }
+.cate-item { padding: 10px 14px; border-radius: 12px; cursor: pointer; font-size: 14px; color: var(--text-lt); transition: all .2s; }
 .cate-item:hover { background: #F0E6D8; color: var(--brown); }
 .cate-item.active { background: linear-gradient(135deg, #8B5E3C, #A67C52); color: #fff; font-weight: 600; }
+.cate-sub { padding-left: 32px; font-size: 13px; }  /* 子分类缩进 */
 
 .search-bar { margin-bottom: 20px; }
 :deep(.warm-search .el-input__wrapper) { background: #fff; border-radius: 14px; border: 1.5px solid #E8DDD0; box-shadow: none; padding-left: 12px; }
