@@ -5,7 +5,11 @@ import { Shop, ShoppingCart, List, User, SwitchButton } from '@element-plus/icon
 
 const auth = useAuthStore()
 const router = useRouter()
-function handleLogout() { auth.logout(); router.push('/login') }
+function handleLogout() {
+  const isAdmin = auth.user?.role === 'admin'
+  auth.logout()
+  router.push(isAdmin ? '/admin/login' : '/login')
+}
 </script>
 
 <template>
