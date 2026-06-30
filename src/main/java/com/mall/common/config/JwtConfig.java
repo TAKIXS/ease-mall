@@ -28,11 +28,16 @@ public class JwtConfig {
     private int expireDays;
 
     /**
-     * @PostConstruct = Bean 创建完成后自动执行
-     * 这里把配置传给 JwtUtil，完成初始化
+     * 初始化 JWT 工具类
+     * 优先使用环境变量 JWT_SECRET，无则回退到配置文件
+     * 生产环境: export JWT_SECRET="your-256-bit-secret"
      */
     @PostConstruct
     public void init() {
-        JwtUtil.init(secret, expireDays);
+        String actualSecret = System.getenv("JWT_SECRET");
+        if (actualSecret == null || actualSecret.isBlank()) {
+            actualSecret = secret;
+        }
+        JwtUtil.init(actualSecret, expireDays);
     }
 }
