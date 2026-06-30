@@ -28,11 +28,19 @@ async function toggleUser(uid) {
 
 // ===== 订单管理 =====
 const orders = ref([]); const orderPage = ref(1); const orderTotal = ref(0)
+const expandedOrder = ref(null); const orderDetail = ref(null)
 
 async function loadOrders(p = 1) {
   orderPage.value = p
   const res = await request.get('/admin/orders', { params: { page: p, size: 10 } })
   orders.value = res.data.records; orderTotal.value = res.data.total
+}
+
+async function toggleOrderDetail(oid) {
+  if (expandedOrder.value === oid) { expandedOrder.value = null; orderDetail.value = null; return }
+  expandedOrder.value = oid
+  const res = await request.get(`/order/${oid}`)
+  orderDetail.value = res.data
 }
 
 async function shipOrder(oid) {
@@ -172,13 +180,34 @@ onMounted(() => { loadDashboard(); loadUsers() })
 
     <!-- ========== 订单管理 ========== -->
     <div v-if="activeTab==='orders'" class="table-card">
-      <el-table :data="orders" class="warm-table">
+      <el-table :data="orders" class="warm-table" row-key="id" @expand-change="(row, rows) => row && toggleOrderDetail(row.id)">
+        <el-table-column type="expand">
+          <template #default="{row}">
+            <div class="order-expand" v-loading="expandedOrder===row.id && !orderDetail">
+              <div v-if="orderDetail && expandedOrder===row.id">
+                <h4>📦 订单商品</h4>
+                <div v-for="item in orderDetail.items" :key="item.id" class="expand-item">
+                  <span>{{ item.productName }}</span>
+                  <span>×{{ item.quantity }}</span>
+                  <span>¥{{ item.price }}</span>
+                </div>
+                <div class="expand-info">
+                  <p><b>收货地址：</b>{{ orderDetail.receiverName }} {{ orderDetail.receiverPhone }} {{ orderDetail.receiverAddress }}</p>
+                  <p v-if="orderDetail.remark"><b>备注：</b>{{ orderDetail.remark }}</p>
+                  <p><b>下单：</b>{{ orderDetail.createTime?.substring(0,16) }}</p>
+                  <p v-if="orderDetail.payTime"><b>支付：</b>{{ orderDetail.payTime?.substring(0,16) }}</p>
+                  <p v-if="orderDetail.shipTime"><b>发货：</b>{{ orderDetail.shipTime?.substring(0,16) }}</p>
+                </div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="orderNo" label="编号" width="190" />
         <el-table-column label="金额" width="100"><template #default="{row}">¥{{ row.totalAmount }}</template></el-table-column>
         <el-table-column label="状态" width="90"><template #default="{row}">{{ {1:'待支付',2:'已支付',3:'已发货',4:'已完成',5:'已取消'}[row.status] }}</template></el-table-column>
         <el-table-column prop="receiverName" label="收货人" width="80" />
         <el-table-column label="下单时间" width="155"><template #default="{row}">{{ row.createTime?.substring(0,16) }}</template></el-table-column>
-        <el-table-column label="操作" min-width="160">
+        <el-table-column label="操作" width="160">
           <template #default="{row}">
             <button v-if="row.status===2" class="btn-sm" style="background:#8B5E3C;color:#fff" @click="shipOrder(row.id)">发货</button>
             <button v-if="row.status===3" class="btn-sm" style="background:#5B9A8B;color:#fff" @click="completeOrder(row.id)">完成</button>
@@ -313,4 +342,12 @@ onMounted(() => { loadDashboard(); loadUsers() })
 .btn-sm.outline:hover { border-color: var(--brown); color: var(--brown); }
 
 :deep(.warm-table) { --el-table-border-color: #F0E6D8; --el-table-header-bg-color: #F9F5F0; }
+
+/* 订单展开详情 */
+.order-expand { padding: 12px 20px; background: #FFFAF5; border-radius: 10px; min-height: 60px; }
+.order-expand h4 { margin: 0 0 12px; font-size: 15px; color: var(--brown); }
+.expand-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #F0E6D8; font-size: 13px; }
+.expand-item:last-child { border-bottom: none; }
+.expand-info { margin-top: 12px; font-size: 13px; color: var(--text-lt); }
+.expand-info p { margin: 4px 0; }
 </style>
