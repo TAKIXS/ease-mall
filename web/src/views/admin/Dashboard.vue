@@ -177,6 +177,7 @@ onMounted(() => { loadDashboard(); loadUsers() })
         <el-table-column label="金额" width="100"><template #default="{row}">¥{{ row.totalAmount }}</template></el-table-column>
         <el-table-column label="状态" width="90"><template #default="{row}">{{ {1:'待支付',2:'已支付',3:'已发货',4:'已完成',5:'已取消'}[row.status] }}</template></el-table-column>
         <el-table-column prop="receiverName" label="收货人" width="80" />
+        <el-table-column label="下单时间" width="155"><template #default="{row}">{{ row.createTime?.substring(0,16) }}</template></el-table-column>
         <el-table-column label="操作" min-width="160">
           <template #default="{row}">
             <button v-if="row.status===2" class="btn-sm" style="background:#8B5E3C;color:#fff" @click="shipOrder(row.id)">发货</button>
