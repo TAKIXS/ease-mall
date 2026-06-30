@@ -129,17 +129,21 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderMapper.selectById(orderId);
         if (order == null) throw new BusinessException("订单不存在");
         if (!order.getUserId().equals(userId)) throw new BusinessException("无权操作他人订单");
-        if (order.getStatus() != 1) throw new BusinessException("只有待支付订单才能取消");
 
-        order.setStatus(5);  // 5 = 已取消
-        order.setCancelTime(LocalDateTime.now());
-        order.setUpdateTime(LocalDateTime.now());
-        orderMapper.updateById(order);
+        // ★ 原子更新：WHERE status=1，如果已支付/已取消则 rows=0
+        Order update = new Order();
+        update.setStatus(5);
+        update.setCancelTime(LocalDateTime.now());
+        update.setUpdateTime(LocalDateTime.now());
+        int rows = orderMapper.update(update,
+                new LambdaUpdateWrapper<Order>()
+                        .eq(Order::getId, orderId)
+                        .eq(Order::getStatus, 1));
+        if (rows == 0) throw new BusinessException("订单状态已变更，请刷新");
 
-        // ★ 回滚库存
+        // 回滚库存
         List<OrderItem> items = orderItemMapper.selectList(
-                new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, orderId)
-        );
+                new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, orderId));
         for (OrderItem item : items) {
             productService.rollbackStock(item.getProductId(), item.getQuantity());
         }
@@ -148,40 +152,43 @@ public class OrderServiceImpl implements OrderService {
     // ==================== 支付 ====================
     @Override
     public void pay(Long orderId) {
-        Order order = orderMapper.selectById(orderId);
-        if (order == null) throw new BusinessException("订单不存在");
-        if (order.getStatus() != 1) throw new BusinessException("订单状态不正确，无法支付");
-
-        order.setStatus(2);  // 2 = 已支付
-        order.setPayTime(LocalDateTime.now());
-        order.setUpdateTime(LocalDateTime.now());
-        orderMapper.updateById(order);
+        Order update = new Order();
+        update.setStatus(2);
+        update.setPayTime(LocalDateTime.now());
+        update.setUpdateTime(LocalDateTime.now());
+        int rows = orderMapper.update(update,
+                new LambdaUpdateWrapper<Order>()
+                        .eq(Order::getId, orderId)
+                        .eq(Order::getStatus, 1));
+        if (rows == 0) throw new BusinessException("订单状态已变更，请刷新");
     }
 
     // ==================== 发货 ====================
     @Override
     public void ship(Long orderId) {
-        Order order = orderMapper.selectById(orderId);
-        if (order == null) throw new BusinessException("订单不存在");
-        if (order.getStatus() != 2) throw new BusinessException("只有已支付订单才能发货");
-
-        order.setStatus(3);  // 3 = 已发货
-        order.setShipTime(LocalDateTime.now());
-        order.setUpdateTime(LocalDateTime.now());
-        orderMapper.updateById(order);
+        Order update = new Order();
+        update.setStatus(3);
+        update.setShipTime(LocalDateTime.now());
+        update.setUpdateTime(LocalDateTime.now());
+        int rows = orderMapper.update(update,
+                new LambdaUpdateWrapper<Order>()
+                        .eq(Order::getId, orderId)
+                        .eq(Order::getStatus, 2));
+        if (rows == 0) throw new BusinessException("订单状态已变更，请刷新");
     }
 
     // ==================== 完成 ====================
     @Override
     public void complete(Long orderId) {
-        Order order = orderMapper.selectById(orderId);
-        if (order == null) throw new BusinessException("订单不存在");
-        if (order.getStatus() != 3) throw new BusinessException("只有已发货订单才能完成");
-
-        order.setStatus(4);  // 4 = 已完成
-        order.setCompleteTime(LocalDateTime.now());
-        order.setUpdateTime(LocalDateTime.now());
-        orderMapper.updateById(order);
+        Order update = new Order();
+        update.setStatus(4);
+        update.setCompleteTime(LocalDateTime.now());
+        update.setUpdateTime(LocalDateTime.now());
+        int rows = orderMapper.update(update,
+                new LambdaUpdateWrapper<Order>()
+                        .eq(Order::getId, orderId)
+                        .eq(Order::getStatus, 3));
+        if (rows == 0) throw new BusinessException("订单状态已变更，请刷新");
     }
 
     // ==================== 私有方法 ====================
