@@ -6,9 +6,9 @@ import java.util.List;
 
 public interface CategoryService {
 
-    /** 查全部分类，返回树形结构 */
     List<CategoryVO> listTree();
-
-    /** 根据ID查一个分类 */
     Category getById(Long id);
+    Category add(String name, Long parentId, Integer sort, String icon);
+    void update(Long id, String name, Integer sort, String icon);
+    void delete(Long id);
 }

@@ -35,7 +35,30 @@ public class CategoryController {
     @GetMapping("/{id}")
     @Operation(summary = "获取分类详情")
     public R<Category> getById(@PathVariable Long id) {
-        Category category = categoryService.getById(id);
-        return R.ok(category);
+        return R.ok(categoryService.getById(id));
+    }
+
+    @PostMapping
+    @Operation(summary = "新增分类 (管理端)")
+    public R<Category> add(@RequestParam String name,
+            @RequestParam(required = false) Long parentId,
+            @RequestParam(required = false) Integer sort,
+            @RequestParam(required = false) String icon) {
+        return R.ok(categoryService.add(name, parentId, sort, icon));
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "修改分类 (管理端)")
+    public R<Void> update(@PathVariable Long id, @RequestParam(required = false) String name,
+            @RequestParam(required = false) Integer sort, @RequestParam(required = false) String icon) {
+        categoryService.update(id, name, sort, icon);
+        return R.ok();
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "删除分类 (管理端)")
+    public R<Void> delete(@PathVariable Long id) {
+        categoryService.delete(id);
+        return R.ok();
     }
 }
