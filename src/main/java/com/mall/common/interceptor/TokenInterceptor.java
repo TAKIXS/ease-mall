@@ -54,7 +54,19 @@ public class TokenInterceptor implements HandlerInterceptor {
             return false;  // 拦截
         }
 
-        // 3. 把用户信息放入 request，Controller 直接用
+        // 3. ★ 管理端路径：校验角色
+        String path = request.getRequestURI();
+        if (path.startsWith("/admin/") && !path.equals("/admin/login")) {
+            String role = claims.get("role", String.class);
+            if (role == null || (!role.contains("ADMIN") && !role.equals("SUPER_ADMIN"))) {
+                response.setContentType("application/json;charset=UTF-8");
+                response.setStatus(403);
+                response.getWriter().write("{\"code\":403,\"message\":\"无管理员权限\",\"data\":null}");
+                return false;
+            }
+        }
+
+        // 4. 把用户信息放入 request，Controller 直接用
         request.setAttribute("userId", Long.valueOf(claims.getId()));
         request.setAttribute("username", claims.getSubject());
 

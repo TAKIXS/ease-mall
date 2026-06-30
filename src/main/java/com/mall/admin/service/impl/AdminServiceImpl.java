@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -77,8 +78,9 @@ public class AdminServiceImpl implements AdminService {
             throw new BusinessException("用户名或密码错误");
         }
 
-        // 生成 JWT（和普通用户共用同一套 JWT，sub 存用户名，jti 存ID）
-        String token = JwtUtil.generateToken(admin.getId(), admin.getUsername());
+        // 生成 JWT，含 role 标记用于管理端鉴权
+        String token = JwtUtil.generateToken(admin.getId(), admin.getUsername(),
+                Map.of("role", admin.getRole()));
 
         return AdminLoginVO.builder()
                 .token(token)

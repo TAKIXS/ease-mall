@@ -91,4 +91,11 @@ public class JwtUtil {
     public static boolean isTokenValid(String token) {
         return parseToken(token) != null;
     }
+
+    /** 获取 Token 中的自定义 claim */
+    public static String getClaim(String token, String key) {
+        Claims claims = parseToken(token);
+        if (claims == null) return null;
+        return claims.get(key, String.class);
+    }
 }

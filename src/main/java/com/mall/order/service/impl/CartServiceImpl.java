@@ -1,5 +1,7 @@
 package com.mall.order.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.mall.common.exception.BusinessException;
 import com.mall.order.dto.CartItemDTO;
 import com.mall.order.entity.OrderItem;
@@ -7,112 +9,101 @@ import com.mall.order.service.CartService;
 import com.mall.product.entity.Product;
 import com.mall.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 购物车服务（内存版）
+ * 购物车服务 — Redis Hash 持久化
  *
- * 当前用 ConcurrentHashMap 模拟，重启后数据会丢失。
- * 生产环境应换成 Redis Hash：
- *   key   = "cart:" + userId
- *   field = productId
- *   value = JSON(cartItem)
+ * Redis 结构:
+ *   Key:   cart:{userId}
+ *   Field: productId
+ *   Value: JSON(CartItemDTO)
  *
- * 数据结构：
- *   Map<userId, Map<productId, CartItemDTO>>
+ * 重启不丢失数据（Redis appendonly 已开启）。
  */
 @Service
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
 
-    /** 模拟 Redis 的存储 */
-    private final Map<Long, Map<Long, CartItemDTO>> cartStore = new ConcurrentHashMap<>();
+    private static final String CART_PREFIX = "cart:";
 
+    private final StringRedisTemplate redisTemplate;
     private final ProductService productService;
 
     // ==================== 添加到购物车 ====================
     @Override
     public void addItem(Long userId, CartItemDTO dto) {
-        // 验证商品存在
-        Product product = productService.getById(dto.getProductId());
+        productService.getById(dto.getProductId()); // 验证商品存在
+        String key = CART_PREFIX + userId;
+        String field = String.valueOf(dto.getProductId());
 
-        // 获取该用户的购物车（没有就建新的）
-        Map<Long, CartItemDTO> userCart = cartStore.get(userId);
-        if (userCart == null) {
-            userCart = new ConcurrentHashMap<>();
-            cartStore.put(userId, userCart);
-        }
-
-        // 如果购物车已有这个商品，数量叠加；否则新增
-        CartItemDTO existing = userCart.get(dto.getProductId());
-        if (existing != null) {
+        // 已有 → 叠加数量
+        String existingJson = (String) redisTemplate.opsForHash().get(key, field);
+        if (StrUtil.isNotBlank(existingJson)) {
+            CartItemDTO existing = JSONUtil.toBean(existingJson, CartItemDTO.class);
             existing.setQuantity(existing.getQuantity() + dto.getQuantity());
+            redisTemplate.opsForHash().put(key, field, JSONUtil.toJsonStr(existing));
         } else {
-            userCart.put(dto.getProductId(), dto);
+            redisTemplate.opsForHash().put(key, field, JSONUtil.toJsonStr(dto));
         }
     }
 
     // ==================== 获取购物车列表 ====================
     @Override
     public List<OrderItem> getItems(Long userId) {
-        Map<Long, CartItemDTO> userCart = cartStore.get(userId);
-        if (userCart == null || userCart.isEmpty()) {
-            return List.of();  // 空购物车，返回空列表
-        }
+        String key = CART_PREFIX + userId;
+        Map<Object, Object> entries = redisTemplate.opsForHash().entries(key);
+        if (entries.isEmpty()) return List.of();
 
-        // 把 CartItemDTO 转成 OrderItem，跳过已下架/不存在的商品
         List<OrderItem> items = new ArrayList<>();
-        List<Long> invalidIds = new ArrayList<>();
-        for (CartItemDTO dto : userCart.values()) {
-            Product product;
-            try {
-                product = productService.getById(dto.getProductId());
-            } catch (Exception e) {
-                invalidIds.add(dto.getProductId());  // 商品不存在，标记删除
-                continue;
-            }
+        List<String> invalidFields = new ArrayList<>();
 
-            OrderItem item = new OrderItem();
-            item.setProductId(product.getId());
-            item.setProductName(product.getName());
-            item.setProductImage(product.getCoverImage());
-            item.setPrice(product.getPrice());
-            item.setQuantity(dto.getQuantity());
-            items.add(item);
+        for (Object field : entries.keySet()) {
+            CartItemDTO dto = JSONUtil.toBean((String) entries.get(field), CartItemDTO.class);
+            try {
+                Product product = productService.getById(dto.getProductId());
+                OrderItem item = new OrderItem();
+                item.setProductId(product.getId());
+                item.setProductName(product.getName());
+                item.setProductImage(product.getCoverImage());
+                item.setPrice(product.getPrice());
+                item.setQuantity(dto.getQuantity());
+                items.add(item);
+            } catch (Exception e) {
+                invalidFields.add((String) field); // 商品已下架
+            }
         }
-        // ★ 清理已失效的商品
-        invalidIds.forEach(userCart::remove);
+        // 清理失效商品
+        invalidFields.forEach(f -> redisTemplate.opsForHash().delete(key, f));
         return items;
     }
 
     // ==================== 修改数量 ====================
     @Override
     public void updateQuantity(Long userId, Long productId, int quantity) {
-        Map<Long, CartItemDTO> userCart = cartStore.get(userId);
-        if (userCart == null || !userCart.containsKey(productId)) {
-            throw new BusinessException("购物车中没有该商品");
-        }
-        userCart.get(productId).setQuantity(quantity);
+        String key = CART_PREFIX + userId;
+        String field = String.valueOf(productId);
+        String json = (String) redisTemplate.opsForHash().get(key, field);
+        if (StrUtil.isBlank(json)) throw new BusinessException("购物车中没有该商品");
+        CartItemDTO dto = JSONUtil.toBean(json, CartItemDTO.class);
+        dto.setQuantity(quantity);
+        redisTemplate.opsForHash().put(key, field, JSONUtil.toJsonStr(dto));
     }
 
     // ==================== 移除商品 ====================
     @Override
     public void removeItem(Long userId, Long productId) {
-        Map<Long, CartItemDTO> userCart = cartStore.get(userId);
-        if (userCart != null) {
-            userCart.remove(productId);
-        }
+        redisTemplate.opsForHash().delete(CART_PREFIX + userId, String.valueOf(productId));
     }
 
     // ==================== 清空购物车 ====================
     @Override
     public void clear(Long userId) {
-        cartStore.remove(userId);
+        redisTemplate.delete(CART_PREFIX + userId);
     }
 }
