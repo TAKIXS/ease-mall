@@ -4,18 +4,20 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import request from '../../utils/request'
 import { ElMessage } from 'element-plus'
-import { Folder, ShoppingCart } from '@element-plus/icons-vue'
+import { Folder, ShoppingCart, Trophy } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const auth = useAuthStore()
 const categories = ref([])
 const products = ref([])
+const hotProducts = ref([])
 const keyword = ref('')
 const selectedCategory = ref(null)
 const page = ref(1)
 const total = ref(0)
 
 async function loadCategories() { const res = await request.get('/product/category'); categories.value = res.data }
+async function loadHotProducts() { const res = await request.get('/product/hot'); hotProducts.value = res.data }
 async function searchProducts(p = 1) {
   page.value = p; const params = { page: p, size: 8 }
   if (keyword.value) params.keyword = keyword.value
@@ -29,7 +31,7 @@ async function addToCart(product) {
   ElMessage.success('已加入购物车')
 }
 function selectCategory(id) { selectedCategory.value = id; searchProducts(1) }
-onMounted(() => { loadCategories(); searchProducts() })
+onMounted(() => { loadCategories(); searchProducts(); loadHotProducts() })
 </script>
 
 <template>
@@ -91,6 +93,22 @@ onMounted(() => { loadCategories(); searchProducts() })
         <el-pagination v-model:current-page="page" :page-size="8" :total="total" background layout="prev, pager, next" @current-change="searchProducts" />
       </div>
     </div>
+
+    <!-- ★ 右侧热销排名 -->
+    <div class="hot-panel">
+      <div class="hot-title">
+        <el-icon :size="18" color="#E8A838"><Trophy /></el-icon>
+        <span>热销排行</span>
+      </div>
+      <div class="hot-list">
+        <div v-for="(p, i) in hotProducts" :key="p.id" class="hot-item" @click="router.push('/product/'+p.id)">
+          <span class="hot-rank" :class="'rank-'+(i+1)">{{ i + 1 }}</span>
+          <span class="hot-name">{{ p.name }}</span>
+          <span class="hot-sales">{{ p.sales }}件</span>
+        </div>
+        <div v-if="!hotProducts.length" class="hot-empty">暂无数据</div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -124,4 +142,56 @@ onMounted(() => { loadCategories(); searchProducts() })
 .pmeta { display: flex; justify-content: space-between; font-size: 12px; color: var(--brown-pale); margin-bottom: 10px; }
 .cart-btn { width: 100%; padding: 9px; border: 1.5px solid var(--brown); background: transparent; color: var(--brown); border-radius: 12px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 4px; }
 .cart-btn:hover { background: var(--brown); color: #fff; }
+
+/* ===== 右侧热销排名 ===== */
+.hot-panel {
+  width: 200px;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 16px;
+  height: fit-content;
+  position: sticky;
+  top: 80px;
+}
+.hot-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #F0E6D8;
+}
+.hot-list { display: flex; flex-direction: column; gap: 6px; }
+.hot-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.hot-item:hover { background: #F9F5F0; }
+.hot-rank {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  background: #E8DDD0; color: var(--text-lt);
+  flex-shrink: 0;
+}
+.hot-rank.rank-1 { background: #E8A838; color: #fff; }
+.hot-rank.rank-2 { background: #C0C0C0; color: #fff; }
+.hot-rank.rank-3 { background: #CD7F32; color: #fff; }
+.hot-name {
+  flex: 1;
+  font-size: 13px; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.hot-sales { font-size: 11px; color: var(--brown-pale); flex-shrink: 0; }
+.hot-empty { text-align: center; color: var(--brown-pale); font-size: 13px; padding: 12px 0; }
 </style>

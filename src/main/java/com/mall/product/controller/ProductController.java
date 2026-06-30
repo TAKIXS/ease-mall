@@ -2,6 +2,7 @@ package com.mall.product.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mall.common.result.R;
+import java.util.List;
 import com.mall.product.dto.ProductDTO;
 import com.mall.product.entity.Product;
 import com.mall.product.service.ProductService;
@@ -27,6 +28,13 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
 
     private final ProductService productService;
+
+    // ==================== 热销排行 ====================
+    @GetMapping("/hot")
+    @Operation(summary = "热销商品 Top8")
+    public R<List<Product>> hot() {
+        return R.ok(productService.getHotProducts(8));
+    }
 
     // ==================== 分页搜索 ====================
     @GetMapping

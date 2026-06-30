@@ -3,6 +3,7 @@ package com.mall.product.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mall.product.dto.ProductDTO;
 import com.mall.product.entity.Product;
+import java.util.List;
 
 public interface ProductService {
 
@@ -26,4 +27,7 @@ public interface ProductService {
 
     /** 回滚库存（取消订单时调用） */
     void rollbackStock(Long id, int quantity);
+
+    /** 热销商品 Top N */
+    List<Product> getHotProducts(int limit);
 }

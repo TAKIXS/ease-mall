@@ -49,6 +49,16 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.selectPage(pageParam, wrapper);
     }
 
+    // ==================== 热销排行 ====================
+    @Override
+    public List<Product> getHotProducts(int limit) {
+        LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Product::getStatus, 1)
+               .orderByDesc(Product::getSales)
+               .last("LIMIT " + limit);
+        return productMapper.selectList(wrapper);
+    }
+
     /** 递归收集子分类ID */
     private void collectChildIds(Long parentId, List<Long> ids) {
         List<Category> children = categoryMapper.selectList(
