@@ -33,6 +33,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/admin/login",                   // 管理员登录
                         "/product/category",              // 浏览分类树
                         "/product",                       // 浏览商品列表
+                        "/product/hot",                   // 热销排行
                         "/product/{id:[0-9]+}",           // 浏览商品详情（RESTful 路径参数）
                         "/doc.html",                      // Knife4j
                         "/v3/**",                         // OpenAPI
