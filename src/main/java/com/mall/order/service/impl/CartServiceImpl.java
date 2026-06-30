@@ -66,10 +66,17 @@ public class CartServiceImpl implements CartService {
             return List.of();  // 空购物车，返回空列表
         }
 
-        // 把 CartItemDTO 转成 OrderItem，同时从 ProductService 拿商品名称和价格
+        // 把 CartItemDTO 转成 OrderItem，跳过已下架/不存在的商品
         List<OrderItem> items = new ArrayList<>();
+        List<Long> invalidIds = new ArrayList<>();
         for (CartItemDTO dto : userCart.values()) {
-            Product product = productService.getById(dto.getProductId());
+            Product product;
+            try {
+                product = productService.getById(dto.getProductId());
+            } catch (Exception e) {
+                invalidIds.add(dto.getProductId());  // 商品不存在，标记删除
+                continue;
+            }
 
             OrderItem item = new OrderItem();
             item.setProductId(product.getId());
@@ -79,6 +86,8 @@ public class CartServiceImpl implements CartService {
             item.setQuantity(dto.getQuantity());
             items.add(item);
         }
+        // ★ 清理已失效的商品
+        invalidIds.forEach(userCart::remove);
         return items;
     }
 
