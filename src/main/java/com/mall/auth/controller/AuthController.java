@@ -5,6 +5,8 @@ import com.mall.auth.dto.RegisterDTO;
 import com.mall.auth.service.AuthService;
 import com.mall.auth.vo.LoginVO;
 import com.mall.common.result.R;
+import com.mall.common.result.ResultCode;
+import com.mall.common.service.RateLimitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final RateLimitService rateLimitService;
 
     /**
      * 用户注册
@@ -79,9 +82,23 @@ public class AuthController {
      */
     @PostMapping("/login")
     @Operation(summary = "用户登录")
-    public R<LoginVO> login(@Valid @RequestBody LoginDTO dto) {
-        LoginVO vo = authService.login(dto);
-        return R.ok(vo);
+    public R<LoginVO> login(@Valid @RequestBody LoginDTO dto, HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        String limitKey = "limit:login:" + ip;
+
+        // ★ 限流检查
+        if (rateLimitService.isBlocked(limitKey)) {
+            return R.fail(ResultCode.ERROR, "操作过于频繁，请" + "5" + "分钟后再试");
+        }
+
+        try {
+            LoginVO vo = authService.login(dto);
+            rateLimitService.clear(limitKey);  // 成功后清除计数
+            return R.ok(vo);
+        } catch (Exception e) {
+            rateLimitService.recordFailure(limitKey);  // 失败计数 +1
+            throw e;
+        }
     }
 
     /**
