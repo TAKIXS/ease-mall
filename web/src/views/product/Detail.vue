@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import request from '../../utils/request'
@@ -8,8 +8,33 @@ import { ShoppingCart, Box, TrendCharts } from '@element-plus/icons-vue'
 
 const route = useRoute(); const router = useRouter(); const auth = useAuthStore()
 const product = ref({}); const quantity = ref(1)
+const selectedSpecs = ref({})
 
-async function loadProduct() { const res = await request.get(`/product/${route.params.id}`); product.value = res.data }
+// ★ 解析 specs JSON → {颜色: "原色钛金属", 存储: "256GB"}
+const specEntries = computed(() => {
+  if (!product.value.specs) return []
+  try {
+    return Object.entries(JSON.parse(product.value.specs))
+  } catch { return [] }
+})
+
+function selectSpec(key, value) {
+  selectedSpecs.value[key] = value
+}
+// 初始化选中的规格
+function initSpecs() {
+  if (!product.value.specs) return
+  try {
+    const obj = JSON.parse(product.value.specs)
+    selectedSpecs.value = { ...obj }
+  } catch {}
+}
+
+async function loadProduct() {
+  const res = await request.get(`/product/${route.params.id}`)
+  product.value = res.data
+  initSpecs()
+}
 async function addToCart() { if (!auth.isLoggedIn()) { router.push('/login'); return }; await request.post('/cart', { productId: product.value.id, quantity: quantity.value }); ElMessage.success('已加入购物车') }
 async function buyNow() { await addToCart(); router.push('/cart') }
 onMounted(loadProduct)
@@ -25,11 +50,20 @@ onMounted(loadProduct)
       <h1>{{ product.name }}</h1>
       <div class="price">¥{{ product.price }}</div>
       <p class="desc">{{ product.description }}</p>
+
+      <!-- ★ 可选规格 -->
+      <div v-if="specEntries.length" class="spec-section">
+        <div v-for="[key, value] in specEntries" :key="key" class="spec-group">
+          <span class="spec-label">{{ key }}</span>
+          <span class="spec-chip" :class="{active: selectedSpecs[key] === value}"
+            @click="selectSpec(key, value)">{{ value }}</span>
+        </div>
+      </div>
+
       <div class="meta-row">
         <span><el-icon :size="16"><Box /></el-icon> 库存 {{ product.stock }}</span>
         <span><el-icon :size="16"><TrendCharts /></el-icon> 已售 {{ product.sales }}</span>
       </div>
-      <div v-if="product.specs" class="specs">规格：{{ product.specs }}</div>
       <div class="qty-row"><span>数量</span><el-input-number v-model="quantity" :min="1" :max="product.stock" size="large" class="warm-qty" /></div>
       <div class="btns">
         <button class="btn-cart" @click="addToCart"><el-icon :size="18"><ShoppingCart /></el-icon> 加入购物车</button>
@@ -52,7 +86,29 @@ h1 { font-size: 26px; font-weight: 700; color: var(--text); margin-bottom: 12px;
 .desc { color: var(--text-lt); font-size: 15px; line-height: 1.6; margin-bottom: 16px; }
 .meta-row { display: flex; gap: 24px; color: var(--brown-pale); font-size: 14px; margin-bottom: 12px; }
 .meta-row span { display: flex; align-items: center; gap: 4px; }
-.specs { color: var(--brown-lt); font-size: 14px; margin-bottom: 20px; padding: 10px 16px; background: var(--bg); border-radius: 10px; }
+
+/* 规格选择 */
+.spec-section { margin-bottom: 18px; display: flex; flex-direction: column; gap: 12px; }
+.spec-group { display: flex; align-items: center; gap: 10px; }
+.spec-label { font-size: 14px; color: var(--text-lt); min-width: 40px; }
+.spec-chip {
+  display: inline-block;
+  padding: 6px 16px;
+  border: 1.5px solid #E8DDD0;
+  border-radius: 8px;
+  font-size: 13px; color: var(--text);
+  cursor: pointer;
+  transition: all .2s;
+  background: var(--bg);
+}
+.spec-chip:hover { border-color: var(--brown); color: var(--brown); }
+.spec-chip.active {
+  border-color: var(--brown);
+  background: var(--brown);
+  color: #fff;
+  font-weight: 600;
+}
+
 .qty-row { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; color: var(--text); font-size: 15px; }
 :deep(.warm-qty .el-input__wrapper) { border-radius: 12px; border-color: #E8DDD0; box-shadow: none; }
 .btns { display: flex; gap: 14px; }
