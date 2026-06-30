@@ -8,7 +8,13 @@ import { Lock } from '@element-plus/icons-vue'
 const router = useRouter()
 const form = reactive({ username: 'admin', password: 'admin123' })
 async function handleLogin() {
-  try { const res = await request.post('/admin/login', form); localStorage.setItem('adminToken', res.data.token); localStorage.setItem('adminInfo', JSON.stringify(res.data)); ElMessage.success('管理员登录成功'); router.push('/admin/dashboard') } catch (e) {}
+  try {
+    const res = await request.post('/admin/login', form)
+    localStorage.setItem('token', res.data.token)
+    localStorage.setItem('user', JSON.stringify({ id: res.data.adminId, username: res.data.username, nickname: res.data.username, role: 'admin' }))
+    ElMessage.success('管理员登录成功')
+    router.push('/admin/dashboard')
+  } catch (e) {}
 }
 </script>
 
