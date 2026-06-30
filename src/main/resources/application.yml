@@ -5,24 +5,27 @@ spring:
   application:
     name: ease-mall
 
-  # ==================== H2 内存数据库（零安装，重启后数据消失） ====================
+  # ==================== MySQL（Docker，端口3307） ====================
   datasource:
-    url: jdbc:h2:mem:mall;MODE=MySQL;DB_CLOSE_DELAY=-1
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-  h2:
-    console:
-      enabled: true               # 开启 H2 网页控制台 http://localhost:8080/h2-console
-      path: /h2-console
+    url: jdbc:mysql://127.0.0.1:3307/mall?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
 
-  # 自动执行 classpath 下的 schema.sql（建表）和 data.sql（数据）
-  sql:
-    init:
-      mode: always
+  # ==================== Redis（Docker） ====================
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
 
 # ==================== MyBatis-Plus ====================
-# 开发时打印 SQL，能看到每行代码对应什么 SQL 语句
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
@@ -45,7 +48,7 @@ logging:
   level:
     com.mall: debug
 
-# ==================== JWT 配置 ====================
+# ==================== JWT ====================
 jwt:
   secret: ease-mall-jwt-secret-key-2024-must-be-at-least-256-bits-long!!
   expire-days: 7

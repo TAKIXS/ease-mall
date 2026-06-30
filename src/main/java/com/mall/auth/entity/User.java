@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  *   @TableLogic     = 逻辑删除标记（deleted=1 表示"已删除"，但数据还在）
  */
 @Data
-@TableName("mall_user")  // 避免 user 是 H2 保留关键字
+@TableName("user")  // MySQL 不需要特殊处理
 public class User {
 
     /** 用户ID，数据库自增 */
