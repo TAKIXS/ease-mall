@@ -2,6 +2,7 @@ package com.mall.order.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mall.common.result.R;
+import com.mall.common.utils.JwtUtil;
 import com.mall.order.dto.OrderCreateDTO;
 import com.mall.order.entity.Order;
 import com.mall.order.service.OrderService;
@@ -30,10 +31,17 @@ public class OrderController {
     }
 
     @GetMapping
-    @Operation(summary = "我的订单列表")
+    @Operation(summary = "订单列表（普通用户看自己，管理员看全部）")
     public R<Page<Order>> myOrders(HttpServletRequest req,
                                    @RequestParam(defaultValue = "1") int page,
                                    @RequestParam(defaultValue = "10") int size) {
+        String auth = req.getHeader("Authorization");
+        if (auth != null && auth.startsWith("Bearer ")) {
+            String role = JwtUtil.getClaim(auth.substring(7), "role");
+            if (role != null && role.contains("ADMIN")) {
+                return R.ok(orderService.listAll(page, size));  // 管理员看全部
+            }
+        }
         return R.ok(orderService.listByUser(getUserId(req), page, size));
     }
 
