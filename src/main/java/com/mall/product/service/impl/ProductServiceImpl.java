@@ -3,14 +3,20 @@ package com.mall.product.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mall.common.exception.BusinessException;
 import com.mall.product.dto.ProductDTO;
+import com.mall.product.entity.Category;
 import com.mall.product.entity.Product;
+import com.mall.product.mapper.CategoryMapper;
 import com.mall.product.mapper.ProductMapper;
 import com.mall.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import java.time.LocalDateTime;
 
@@ -19,28 +25,38 @@ import java.time.LocalDateTime;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductMapper productMapper;
+    private final CategoryMapper categoryMapper;
 
     // ==================== 分页搜索 ====================
     @Override
     public Page<Product> search(String keyword, Long categoryId, int page, int size) {
-        // 构建查询条件（动态条件：传了就加，没传就不加）
         LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
 
-        // 关键词搜索 → WHERE name LIKE '%keyword%'
         if (keyword != null && !keyword.isBlank()) {
             wrapper.like(Product::getName, keyword);
         }
-        // 分类筛选 → AND category_id = ?
+        // ★ 分类筛选：包含该分类及其所有子分类
         if (categoryId != null) {
-            wrapper.eq(Product::getCategoryId, categoryId);
+            List<Long> ids = new ArrayList<>();
+            ids.add(categoryId);
+            collectChildIds(categoryId, ids);
+            wrapper.in(Product::getCategoryId, ids);
         }
-        // 只查上架商品
         wrapper.eq(Product::getStatus, 1)
                .orderByDesc(Product::getCreateTime);
 
-        // MyBatis-Plus 分页：第一个参数是第几页，第二个是每页条数
         Page<Product> pageParam = new Page<>(page, size);
         return productMapper.selectPage(pageParam, wrapper);
+    }
+
+    /** 递归收集子分类ID */
+    private void collectChildIds(Long parentId, List<Long> ids) {
+        List<Category> children = categoryMapper.selectList(
+                new LambdaQueryWrapper<Category>().eq(Category::getParentId, parentId));
+        for (Category child : children) {
+            ids.add(child.getId());
+            collectChildIds(child.getId(), ids);  // 递归
+        }
     }
 
     // ==================== 查一条 ====================
