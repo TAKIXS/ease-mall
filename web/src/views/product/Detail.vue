@@ -10,23 +10,31 @@ const route = useRoute(); const router = useRouter(); const auth = useAuthStore(
 const product = ref({}); const quantity = ref(1)
 const selectedSpecs = ref({})
 
-// ★ 解析 specs JSON → {颜色: "原色钛金属", 存储: "256GB"}
-const specEntries = computed(() => {
+// ★ 解析 specs JSON，拆分逗号多值为数组
+const specGroups = computed(() => {
   if (!product.value.specs) return []
   try {
-    return Object.entries(JSON.parse(product.value.specs))
+    const obj = JSON.parse(product.value.specs)
+    return Object.entries(obj).map(([key, val]) => ({
+      key,
+      values: String(val).split(',')
+    }))
   } catch { return [] }
 })
 
 function selectSpec(key, value) {
   selectedSpecs.value[key] = value
 }
-// 初始化选中的规格
+// 初始化：每个规格默认选第一个值
 function initSpecs() {
   if (!product.value.specs) return
   try {
     const obj = JSON.parse(product.value.specs)
-    selectedSpecs.value = { ...obj }
+    const init = {}
+    for (const [k, v] of Object.entries(obj)) {
+      init[k] = String(v).split(',')[0]
+    }
+    selectedSpecs.value = init
   } catch {}
 }
 
@@ -51,12 +59,15 @@ onMounted(loadProduct)
       <div class="price">¥{{ product.price }}</div>
       <p class="desc">{{ product.description }}</p>
 
-      <!-- ★ 可选规格 -->
-      <div v-if="specEntries.length" class="spec-section">
-        <div v-for="[key, value] in specEntries" :key="key" class="spec-group">
-          <span class="spec-label">{{ key }}</span>
-          <span class="spec-chip" :class="{active: selectedSpecs[key] === value}"
-            @click="selectSpec(key, value)">{{ value }}</span>
+      <!-- ★ 可选规格（多值拆分） -->
+      <div v-if="specGroups.length" class="spec-section">
+        <div v-for="g in specGroups" :key="g.key" class="spec-group">
+          <span class="spec-label">{{ g.key }}</span>
+          <div class="spec-chips">
+            <span v-for="v in g.values" :key="v"
+              class="spec-chip" :class="{active: selectedSpecs[g.key] === v}"
+              @click="selectSpec(g.key, v)">{{ v }}</span>
+          </div>
         </div>
       </div>
 
@@ -89,8 +100,9 @@ h1 { font-size: 26px; font-weight: 700; color: var(--text); margin-bottom: 12px;
 
 /* 规格选择 */
 .spec-section { margin-bottom: 18px; display: flex; flex-direction: column; gap: 12px; }
-.spec-group { display: flex; align-items: center; gap: 10px; }
-.spec-label { font-size: 14px; color: var(--text-lt); min-width: 40px; }
+.spec-group { display: flex; align-items: flex-start; gap: 10px; }
+.spec-label { font-size: 14px; color: var(--text-lt); min-width: 40px; padding-top: 6px; }
+.spec-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .spec-chip {
   display: inline-block;
   padding: 6px 16px;
